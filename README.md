@@ -39,6 +39,12 @@ https://www.howtoforge.com/perfect-server-debian-wheezy-apache2-bind-dovecot-isp
 
 to install debian as required for ISPConfig
 
+For Centos install
+
+yum -y install wget unzip
+
+to download and decompress zip file of installation process
+
 * Configuration
 
 After you got a fresh and perfect Debian installation you can launch the first script
