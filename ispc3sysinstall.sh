@@ -546,7 +546,7 @@ if [ -f /etc/debian_version ]; then
   InstallFail2ban
   InstallWebmail
   InstallISPConfig
-elif [ -f cat /etc/redhat-release ]
+elif [ -f cat /etc/redhat-release ]; then
 	echo "Your system will be supported soon... visit us on https://github.com/servisys/ispconfig_setup"
 	echo "We are starting the installation on Centos 7"
 	yum -y install nano vim net-tools wget NetworkManager-tui
