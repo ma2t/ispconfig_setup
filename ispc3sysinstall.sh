@@ -546,8 +546,25 @@ if [ -f /etc/debian_version ]; then
   InstallFail2ban
   InstallWebmail
   InstallISPConfig
-elif [-f cat /etc/redhat-release ]
+elif [ -f cat /etc/redhat-release ]
 	echo "Your system will be supported soon... visit us on https://github.com/servisys/ispconfig_setup"
+	echo "We are starting the installation on Centos 7"
+	yum -y install nano vim net-tools wget NetworkManager-tui
+	echo "Disable Centos Firewall"
+	systemctl stop firewalld.service
+	systemctl disable firewalld.service
+	echo "Cgeck that your /etc/hosts is configured correctly"
+	echo "Press Enter to continue..."
+	read DUMMY
+	nano /etc/hosts
+	sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+	rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
+	rpm -ivh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm #Attention that the rpm is present in the repository
+	yum -y install yum-priorities
+	wget http://repo.temporini.net/ispconfig_install/centos7/epel.repo -O /etc/yum.repos.d/epel.repo
+	yum update
+	yum -y groupinstall 'Development Tools'
+	# 8 - https://www.howtoforge.com/perfect-server-centos-7-apache2-mysql-php-pureftpd-postfix-dovecot-and-ispconfig3 
 else
   echo "Unsupported linux distribution."
 fi
