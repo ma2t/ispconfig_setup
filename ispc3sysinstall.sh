@@ -565,6 +565,74 @@ elif [ -f /etc/redhat-release ]; then
 	yum update
 	yum -y groupinstall 'Development Tools'
 	# 8 - https://www.howtoforge.com/perfect-server-centos-7-apache2-mysql-php-pureftpd-postfix-dovecot-and-ispconfig3 
+	if [ $CFG_QUOTA == "y" ]; then
+		yum -y install quota
+		CFG_PARTITION=$(whiptail --title "Partition Configuration" --backtitle "$WT_BACKTITLE" --nocancel --radiolist "Enable quota on / or in /var (for separate mount)" 10 50 2 "root" "(default)" ON "/var" "" OFF 3>&1 1>&2 2>&3)
+		if [ $CFG_PARTITION == "root" ]; then
+			sed -i 's/quiet/quiet rootflags=uquota,gquota/' /etc/default/grub
+			cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg_bak
+			grub2-mkconfig -o /boot/grub2/grub.cfg
+		else
+			echo "Sorry but this feature is not yet implemented."
+			echo "Manually add ,uquota,gquota at the line of you /var mount point"
+			echo "Change defaults options to defaults,uquota,gquota"
+			echo "press ENTER when ready to edit /etc/fstab"
+			read DUMMY
+			nano /etc/fstab
+			mount -o remount /var
+			quotacheck -avugm
+			quotaon -avug
+		fi
+	fi
+	yum -y install ntp httpd mod_ssl mariadb-server php php-mysql php-mbstring phpmyadmin
+	yum -y install dovecot dovecot-mysql dovecot-pigeonhole
+	touch /etc/dovecot/dovecot-sql.conf
+	ln -s /etc/dovecot/dovecot-sql.conf /etc/dovecot-sql.conf
+	systemctl enable dovecot
+	systemctl start dovecot
+	yum -y install postfix
+	systemctl enable mariadb.service
+	systemctl start mariadb.service
+	systemctl stop sendmail.service
+	systemctl disable sendmail.service
+	systemctl enable postfix.service
+	systemctl restart postfix.service
+	yum -y install getmail expect
+	CFG_MYSQL_ROOT_PWD=$(whiptail --title "MySQL" --backtitle "$WT_BACKTITLE" --inputbox "Please specify a root password" --nocancel 10 50 3>&1 1>&2 2>&3)
+	SECURE_MYSQL=$(expect -c "
+
+					set timeout 10
+					spawn mysql_secure_installation
+					
+					expect \"Enter current password for root (enter for none):\"
+					send \"$MYSQL\r\"
+
+					expect \"Set root password?\"
+					send \"Y\r\"
+					
+					expect \"New password:\"
+					send \"$CFG_MYSQL_ROOT_PWD\r\"
+
+					expect \"Re-enter new password:\"
+					send \"$CFG_MYSQL_ROOT_PWD\r\"
+
+					expect \"Remove anonymous users?\"
+					send \"Y\r\"
+
+					expect \"Disallow root login remotely?\"
+					send \"Y\r\"
+
+					expect \"Remove test database and access to it?\"
+					send \"Y\r\"
+
+					expect \"Reload privilege tables now?\"
+					send \"Y\r\"
+
+					expect eof
+	")
+ 
+	echo "$SECURE_MYSQL"
+  fi
 else
   echo "Unsupported linux distribution."
 fi
