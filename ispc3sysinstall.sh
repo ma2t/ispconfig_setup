@@ -630,9 +630,120 @@ elif [ -f /etc/redhat-release ]; then
 
 					expect eof
 	")
- 
 	echo "$SECURE_MYSQL"
-  fi
+	sed -i 's/Require ip 127.0.0.1/#Require ip 127.0.0.1/' /etc/httpd/conf.d/phpMyAdmin.conf
+	sed -i "s/Require ip ::1/#Require ip ::1\\`echo -e '\n\r'`       Require all granted/g" /etc/httpd/conf.d/phpMyAdmin.conf
+	sed -i "s/'cookie'/'http'/g" /etc/phpMyAdmin/config.inc.php
+	systemctl enable  httpd.service
+	systemctl restart  httpd.service
+	yum -y install amavisd-new spamassassin clamav clamd clamav-update unzip bzip2 unrar perl-DBD-mysql
+	sed -i "s/Example/#Example/g" /etc/freshclam.conf
+	sa-update
+	freshclam 
+	systemctl enable amavisd.service
+	yum -y install php php-devel php-gd php-imap php-ldap php-mysql php-odbc php-pear php-xml php-xmlrpc php-pecl-apc php-mbstring php-mcrypt php-mssql php-snmp php-soap php-tidy curl curl-devel perl-libwww-perl ImageMagick libxml2 libxml2-devel mod_fcgid php-cli httpd-devel php-fpm
+	sed -i "s/error_reporting = E_ALL \& ~E_DEPRECATED \& ~E_STRICT/error_reporting = E_ALL \& ~E_NOTICE \& ~E_DEPRECATED/g" /etc/php.ini
+	sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=1/g" /etc/php.ini
+	sed -i "s/;date.timezone =/date.timezone = 'Europe\/Rome'/g" /etc/php.ini
+	cd /usr/local/src
+	wget http://suphp.org/download/suphp-0.7.2.tar.gz
+	tar zxvf suphp-0.7.2.tar.gz
+	wget -O suphp.patch https://lists.marsching.com/pipermail/suphp/attachments/20130520/74f3ac02/attachment.patch
+	patch -Np1 -d suphp-0.7.2 < suphp.patch
+	cd suphp-0.7.2
+	autoreconf -if
+	./configure --prefix=/usr/ --sysconfdir=/etc/ --with-apr=/usr/bin/apr-1-config --with-apache-user=apache --with-setid-mode=owner --with-logfile=/var/log/httpd/suphp_log
+	make
+	make install
+	echo "LoadModule suphp_module modules/mod_suphp.so" > /etc/httpd/conf.d/suphp.conf
+	printf "[global]\n" > /etc/suphp.conf
+	printf ";Path to logfile\n" >> /etc/suphp.conf
+	printf "logfile=/var/log/httpd/suphp.log\n" >> /etc/suphp.conf
+	printf ";Loglevel\n" >> /etc/suphp.conf
+	printf "loglevel=info\n" >> /etc/suphp.conf
+	printf ";User Apache is running as\n" >> /etc/suphp.conf
+	printf "webserver_user=apache\n" >> /etc/suphp.conf
+	printf ";Path all scripts have to be in\n" >> /etc/suphp.conf
+	printf "docroot=/\n" >> /etc/suphp.conf
+	printf ";Path to chroot() to before executing script\n" >> /etc/suphp.conf
+	printf ";chroot=/mychroot\n" >> /etc/suphp.conf
+	printf "; Security options\n" >> /etc/suphp.conf
+	printf "allow_file_group_writeable=true\n" >> /etc/suphp.conf
+	printf "allow_file_others_writeable=false\n" >> /etc/suphp.conf
+	printf "allow_directory_group_writeable=true\n" >> /etc/suphp.conf
+	printf "allow_directory_others_writeable=false\n" >> /etc/suphp.conf
+	printf ";Check wheter script is within DOCUMENT_ROOT\n" >> /etc/suphp.conf
+	printf "check_vhost_docroot=true\n" >> /etc/suphp.conf
+	printf ";Send minor error messages to browser\n" >> /etc/suphp.conf
+	printf "errors_to_browser=false\n" >> /etc/suphp.conf
+	printf ";PATH environment variable\n" >> /etc/suphp.conf
+	printf "env_path=/bin:/usr/bin\n" >> /etc/suphp.conf
+	printf ";Umask to set, specify in octal notation\n" >> /etc/suphp.conf
+	printf "umask=0077\n" >> /etc/suphp.conf
+	printf "; Minimum UID\n" >> /etc/suphp.conf
+	printf "min_uid=100\n" >> /etc/suphp.conf
+	printf "; Minimum GID\n" >> /etc/suphp.conf
+	printf "min_gid=100\n" >> /etc/suphp.conf
+	printf "\n" >> /etc/suphp.conf
+	printf "[handlers]\n" >> /etc/suphp.conf
+	printf ";Handler for php-scripts\n" >> /etc/suphp.conf
+	printf "x-httpd-suphp=\"php:/usr/bin/php-cgi\"\n" >> /etc/suphp.conf
+	printf ";Handler for CGI-scripts\n" >> /etc/suphp.conf
+	printf "x-suphp-cgi=\"execute:"\!"self\"\n" >> /etc/suphp.conf
+	wget http://repo.temporini.net/ispconfig_install/centos7/httpd.php.conf.txt -O /etc/httpd/conf.d/php.conf
+	systemctl start php-fpm.service
+	systemctl enable php-fpm.service
+	systemctl enable httpd.service
+	systemctl restart httpd.service
+	yum -y install python-devel
+	cd /usr/local/src/
+	wget http://dist.modpython.org/dist/mod_python-3.5.0.tgz
+	tar xfz mod_python-3.5.0.tgz
+	cd mod_python-3.5.0
+	./configure
+	make
+	make install
+	echo 'LoadModule python_module modules/mod_python.so' > /etc/httpd/conf.modules.d/10-python.conf
+	systemctl restart httpd.service
+	yum -y install pure-ftpd
+	systemctl enable pure-ftpd.service
+	systemctl start pure-ftpd.service
+	yum install openssl
+	sed -i "s/# TLS/TLS/g" /etc/pure-ftpd/pure-ftpd.conf
+	mkdir -p /etc/ssl/private/
+	openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
+	chmod 600 /etc/ssl/private/pure-ftpd.pem
+	systemctl restart pure-ftpd.service
+	yum -y install bind bind-utils
+	cp /etc/named.conf /etc/named.conf_bak
+	wget http://repo.temporini.net/ispconfig_install/centos7/named.conf.txt -O /etc/named.conf
+	touch /etc/named.conf.local
+	systemctl enable named.service
+	systemctl start named.service
+	yum -y install webalizer awstats perl-DateTime-Format-HTTP perl-DateTime-Format-Builder
+	cd /tmp
+	wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz
+	tar xvfz jailkit-2.17.tar.gz
+	cd jailkit-2.17
+	./configure
+	make
+	make install
+	cd ..
+	rm -rf jailkit-2.17*
+	yum -y install fail2ban
+	systemctl enable fail2ban.service
+	systemctl start fail2ban.service
+	yum -y install rkhunter
+	# Mailman installation skipped for now
+	yum -y install roundcubemail
+	wget http://repo.temporini.net/ispconfig_install/centos7/roundcubemail.conf.txt -O /etc/httpd/conf.d/roundcubemail.conf
+	systemctl restart httpd.service
+	echo "Now we'll create the database and user for Roundcube webmail. The user password is: $CFG_MYSQL_ROOT_PWD"
+	echo "Note it down for future use. Presso ENTER to continue"
+	read DUMMY
+	echo "CREATE DATABASE roundcubedb; CREATE USER roundcubeuser@localhost IDENTIFIED BY '$CFG_MYSQL_ROOT_PWD'; GRANT ALL PRIVILEGES on roundcubedb.* to roundcubeuser@localhost; FLUSH PRIVILEGES; exit" >  mysql -u root -p$CFG_MYSQL_ROOT_PWD
+	# Arrived step 23 - https://www.howtoforge.com/perfect-server-centos-7-apache2-mysql-php-pureftpd-postfix-dovecot-and-ispconfig3-p3
+fi
 else
   echo "Unsupported linux distribution."
 fi
