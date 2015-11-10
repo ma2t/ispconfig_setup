@@ -13,8 +13,6 @@
 #
 #---------------------------------------------------------------------
 
-
-
 #---------------------------------------------------------------------
 # Global variables
 #---------------------------------------------------------------------
@@ -29,6 +27,9 @@ NC='\033[0m' # No Color
 
 #Saving current directory
 PWD=$(pwd);
+
+# Try to load all questions answers
+[ -f $PWD/config.sh ] && $PWD/source config.sh
 
 #---------------------------------------------------------------------
 # Load needed functions
@@ -92,12 +93,12 @@ else
 fi
 echo
 if [ -n "$DISTRO" ]; then
-	read -p "Is this correct? (y/n)" -n 1 -r
-	echo    # (optional) move to a new line
-	if [[ ! $REPLY =~ ^[Yy]$ ]]
-		then
+#	read -p "Is this correct? (y/n)" -n 1 -r
+#	echo    # (optional) move to a new line
+#	if [[ ! $REPLY =~ ^[Yy]$ ]]
+#		then
 		exit 1
-	fi
+#	fi
 else
 	echo -e "Sorry but your System is not supported by this script, if you want your system supported "
 	echo -e "open an issue on GitHub: https://github.com/servisys/ispconfig_setup"
