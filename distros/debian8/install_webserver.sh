@@ -26,6 +26,11 @@ InstallWebServer() {
 	#echo "Press ENTER to continue... "
 	#read DUMMY
 	echo -n "Installing phpMyAdmin... "
+        echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+        echo "phpmyadmin phpmyadmin/app-password-confirm password $CFG_PMA_PWD" | debconf-set-selections
+        echo "phpmyadmin phpmyadmin/mysql/admin-pass password $CFG_MYSQL_ROOT_PWD" | debconf-set-selections
+        echo "phpmyadmin phpmyadmin/mysql/app-pass password $CFG_PMA_PWD" | debconf-set-selections
+        echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
 	DEBIAN_FRONTEND='noninteractive' command apt-get -f -y install phpmyadmin
 	echo -e "[${green}DONE${NC}]\n"
   fi
