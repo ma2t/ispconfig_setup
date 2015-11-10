@@ -29,7 +29,7 @@ NC='\033[0m' # No Color
 PWD=$(pwd);
 
 # Try to load all questions answers
-[ -f $PWD/config.sh ] && $PWD/source config.sh
+[ -f $PWD/config.sh ] && source $PWD/config.sh
 
 #---------------------------------------------------------------------
 # Load needed functions

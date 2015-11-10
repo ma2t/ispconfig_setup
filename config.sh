@@ -12,6 +12,7 @@ genpasswd() {
 
 CFG_SQLSERVER="MySQL"
 CFG_MYSQL_ROOT_PWD=`genpasswd`
+CFG_PMA_PWD=`genpasswd`
 CFG_WEBSERVER="apache"
 CFG_XCACHE="no"
 CFG_PHPMYADMIN="yes"
@@ -26,3 +27,9 @@ SSL_STATE="Paris"
 SSL_LOCALITY="Paris"
 SSL_ORGANIZATION=$CFG_HOSTNAME_FQDN
 SSL_ORGUNIT="ISPConfig"
+
+echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/app-password-confirm password $CFG_PMA_PWD" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/mysql/admin-pass password $CFG_MYSQL_ROOT_PWD" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/mysql/app-pass password $CFG_PMA_PWD" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
