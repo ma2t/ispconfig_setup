@@ -97,7 +97,7 @@ if [ -n "$DISTRO" ]; then
 #	echo    # (optional) move to a new line
 #	if [[ ! $REPLY =~ ^[Yy]$ ]]
 #		then
-		exit 1
+#		exit 1
 #	fi
 else
 	echo -e "Sorry but your System is not supported by this script, if you want your system supported "
